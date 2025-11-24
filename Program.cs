@@ -175,6 +175,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseCors(PolicyNames.AllSpecifiedOrigin);
 
 // ojo siempre despues de UseCors
