@@ -17,7 +17,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var dbConnectionString = builder.Configuration.GetConnectionString("ConexionSql");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(dbConnectionString));
+  options.UseSqlServer(dbConnectionString)
+  .UseSeeding((context, _) =>
+  {
+    var appContext = (ApplicationDbContext)context;
+    DataSeeder.SeedData(appContext);
+    appContext.SaveChanges();
+  })
+);
 
 builder.Services.AddResponseCaching(options =>
 {

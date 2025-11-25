@@ -1,5 +1,6 @@
 using ApiEcommerce.Models;
 using ApiEcommerce.Models.Dtos;
+using ApiEcommerce.Models.Dtos.Responses;
 using ApiEcommerce.Repository.IRepository;
 using Asp.Versioning;
 using AutoMapper;
@@ -13,7 +14,7 @@ namespace ApiEcommerce.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersionNeutral]
     [ApiController]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
@@ -41,12 +42,12 @@ namespace ApiEcommerce.Controllers
             return Ok(productsDto);
         }
 
+        [AllowAnonymous]
         [HttpGet("{productId:int}", Name = "GetProduct")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [AllowAnonymous]
         public IActionResult GetProduct(int productId)
         {
             var product = _productRepository.GetProduct(productId);
@@ -56,6 +57,39 @@ namespace ApiEcommerce.Controllers
             }
             var productDto = _mapper.Map<ProductDto>(product);
             return Ok(productDto);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("Paged", Name = "GetProductInPage")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetProductInPage([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
+        {
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return BadRequest("Page number and page size must be greater than zero.");
+            }
+
+            var totalProducts = _productRepository.GetProducts().Count;
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+            if (pageNumber > totalPages)
+            {
+                return NotFound("No more products available.");
+            }
+
+            var products = _productRepository.GetProductsInPages(pageNumber, pageSize);
+            var productsDto = _mapper.Map<List<ProductDto>>(products);
+            var paginationResponse = new PaginationResponse<ProductDto>
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = totalPages,
+                Items = productsDto
+            };
+
+            return Ok(paginationResponse);
         }
 
         [HttpGet("searchProductByCategory/{categoryId:int}", Name = "GetProductsForCategory")]

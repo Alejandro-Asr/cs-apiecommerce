@@ -14,7 +14,7 @@ namespace ApiEcommerce.Controllers.V2
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
     [ApiController]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     // [EnableCors(PolicyNames.AllSpecifiedOrigin)] // Habilitar CORS a nivel de controlador
     public class CategoriesController : ControllerBase
     {
